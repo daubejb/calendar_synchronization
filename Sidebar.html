@@ -1,0 +1,244 @@
+<!--***********************************************************************
+MIT License
+
+Copyright (c) 2018 daubedesign
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+************************************************************************-->
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <style>
+      
+      hr {
+        margin-top: 0.65rem;
+        margin-bottom: 0.35rem;
+      }
+      
+      div {
+        margin-bottom: 0;
+        margin-top: 0;
+      }
+      
+      #publishNumber,
+      #deleteNumber,
+      #updateNumber {
+        width: 75px;
+      }
+      
+      #deleteButton {
+        margin-left: 10px;
+      }
+      
+      .title {
+        font-size: 13px;
+      }
+      
+      h4 {
+        margin-top: 16px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      
+      .switch-label .toggle--off {
+        display: inline-block;
+      }
+      
+      .switch-label .toggle--on {
+        display: none;
+      }
+      
+      .switch-input:checked + .switch-label .toggle--off {
+        display: none;
+      }
+      
+      .switch-input:checked + .switch-label .toggle--on {
+        display: inline-block;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <form class="sidebar branding-below">
+    
+      <p class="title"><strong>Calendar:&nbsp</strong>  <span id="calendarTitle"></span></p>
+      <input type="checkbox" id="detailsToggle" class="switch-input" onclick="toggleDetails(detailsToggle.checked)" checked>
+        <label class="switch-label">Details <span class="toggle--on">On</span>
+        <span class="toggle--off">Off</span></label>
+      <hr>
+      
+      <div class="inline form-group">
+        <h4>Publish event to calendar</h4>
+        <label>Row number:&nbsp&nbsp
+        <input type="number" id="publishNumber" min="2" />&nbsp&nbsp
+        <input type="button" class="blue" onclick='publishNewEvents(publishNumber.value)' value="Publish" /></label>
+        <br>
+        <br>
+      </div>
+      
+      <hr>
+      
+      <div class="inline form-group">
+        <h4>Update event on calendar</h4>
+        <label unselectable="on">Row number:&nbsp&nbsp
+        <input type="number" id="updateNumber" min="2" />&nbsp&nbsp
+        <input type="button" onclick='updateCalendar(updateNumber.value)' value="Update" /></label>
+        <br>
+        <br>
+      </div>
+
+      
+      <hr>
+        
+      <div class="inline form-group">  
+        <h4>Delete an event</h4>
+        <div class="inline form-group">
+          <span><label unselectable="on">Row number:&nbsp&nbsp<input type="number" id="deleteNumber" /><input type="button" id="deleteButton" class="red" onclick='deleteEvent(deleteNumber.value)' value="Delete" /></label></span>
+          <br>
+          <br>
+        </div>
+      </div>
+      
+      <hr>
+      
+      <div>
+        <h4>Retrieve new events from calendar</h4>
+        <input type="button" onclick='refreshEvents()' value="Retrieve">
+        <br>
+      </div>      
+      
+      <hr> 
+      
+      <div class="inline form-group">
+        <h4>View calendar options</h4>
+        <label unselectable="on"><input type="radio" id="radioToday" name="calendarViewType" value="Today" />Today<br></label>
+        <label unselectable="on"><input type="radio" id="radioMonth" name="calendarViewType" value="Month" checked />This Month<br></label>
+        <label unselectable="on"><input type="radio" id="radioWeek" name="calendarViewType" value="This week" />This week<br></label>
+        <label unselectable="on"><input type="radio" id="radioSpecific" name="calendarViewType" value="Specific week" /><span>Specific week:&nbsp&nbsp</span><input type="date" id="date" /></label>
+        <br>
+        <br>
+        <input type="button" onclick='openCalendar(radioToday.checked, radioMonth.checked, radioWeek.checked, radioSpecific.checked, date.value)' value="Open calendar" />
+        <br>
+      </div>
+      
+    </form>
+    <div class="sidebar bottom">
+      <span class="gray branding-text">Calendar Synchronization by daubedesign</span>
+    </div>
+      
+    <script>
+      function toggleDetails(detailsToggle) {
+        try {
+          console.log(detailsToggle);
+          google.script.run.toggleDetails(detailsToggle);
+        } catch (err) {
+          google.script.run.displayToast(err);
+        }
+      }
+      
+      function openCalendar(radioToday, radioMonth, radioWeek, radioSpecific, dateValue) {
+        try {
+          if (radioToday) {
+            var today = getFormattedDateToday();
+            window.open("https://www.google.com/calendar/embed?src=redhat.com_rcl08qun4gu0gdj9ac1mr1pni4@group.calendar.google.com&mode=day&dates=" + today + "%2F" + today);
+          }
+          if (radioMonth) {
+            window.open("https://www.google.com/calendar/embed?src=redhat.com_rcl08qun4gu0gdj9ac1mr1pni4@group.calendar.google.com", "_blank");
+          }
+          if (radioWeek) {
+            var today = getFormattedDateToday();
+            window.open("https://www.google.com/calendar/embed?src=redhat.com_rcl08qun4gu0gdj9ac1mr1pni4@group.calendar.google.com&mode=week&dates=" + today + "%2F" + today);
+          }
+          if (radioSpecific) {
+            if (dateValue == "") { throw "To view a specific week, enter a date"; }
+            var anotherDate = getFormattedDate(dateValue);
+            window.open("https://www.google.com/calendar/embed?src=redhat.com_rcl08qun4gu0gdj9ac1mr1pni4@group.calendar.google.com&mode=week&dates=" + anotherDate + "%2F" + anotherDate);
+          }
+        } catch (err) {
+              google.script.run.displayToast(err);
+          }
+      }
+      
+      function getFormattedDate(dt) {
+        return (new Date(dt)).toISOString().slice(0,10).replace(/-/g,"");
+      }
+      
+      function getFormattedDateToday() {
+        return (new Date()).toISOString().slice(0,10).replace(/-/g,"");
+      }
+
+      function refreshEvents() {
+        try {
+          google.script.run.refreshEvents();
+        } catch (err) {
+          google.script.run.displayToast(err);
+        }
+      }
+  
+      function publishNewEvents(publishNumber) {
+        try {
+          if (publishNumber == "") { throw "To publish an event, enter a row number"; }
+          google.script.run.publishNewEvent(publishNumber);
+          document.getElementById('publishNumber').value = "";
+        } catch (err) {
+          google.script.run.displayToast(err);
+        }
+      }
+      
+      function updateCalendar(updateNumber) {
+        try {
+          if (updateNumber == "") { throw "To update an event, enter a row number"; }
+          google.script.run.updateCalendarEvent(updateNumber);
+          document.getElementById('updateNumber').value = "";
+        } catch (err) {
+          google.script.run.displayToast(err);
+        }
+      }
+      
+      function deleteEvent(deleteNumber) {
+        try {
+          if (deleteNumber == "") {throw "To delete an event, enter a row number";}
+          
+          google.script.run.withSuccessHandler(onSuccess)
+            .showAlert('delete','Delete calendar event?',
+                       'This action will delete both the Sheet\'s row and the calendar event');
+          function onSuccess(userResponse) {  
+            if (userResponse == "yes") {
+              google.script.run.deleteEvent(deleteNumber);
+              document.getElementById('deleteNumber').value = "";
+            } else {
+              return;
+            }
+          }
+        } catch (err) {
+            google.script.run.displayToast(err);
+          }
+      }
+      
+    
+    </script>
+    <?!= include('javascript'); ?>
+  </body>
+
+</html>
